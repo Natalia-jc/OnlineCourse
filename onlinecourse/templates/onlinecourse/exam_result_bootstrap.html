@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    {% load static %}
+    {% load result_extras %}
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+
+ <nav class="navbar navbar-light bg-light">
+    <div class="container-fluid">
+        <div class="navbar-header">
+              <a class="navbar-brand" href="{% url 'onlinecourse:index' %}">Home</a>
+        </div>
+        <ul class="nav navbar-nav navbar-right">
+            {% if user.is_authenticated %}
+            <li>
+                <a class="btn btn-link" href="#">{{ user.first_name }}({{ user.username }})</a>
+                <a class="btn btn-link" href="{% url 'onlinecourse:logout' %}">Logout</a>
+            </li>
+            {% else %}
+            <li>
+                <form class="form-inline" action="{% url 'onlinecourse:login' %}" method="post">
+                    {% csrf_token %}
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="Username" name="username" >
+                        <input type="password" class="form-control" placeholder="Username" name="psw" >
+                        <button class="btn btn-primary" type="submit">Login</button>
+                        <a class="btn btn-link" href="{% url 'onlinecourse:registration' %}">Sign Up</a>
+                    </div>
+                </form>
+            </li>
+            {% endif %}
+        </ul>
+    </div>
+</nav>
+
+<div class="container-fluid">
+    
+    {% if passed %}
+    <div class="alert alert-success">
+       Congratulations, {{request.user}} ! You have passed the exam and completed the course with score {{grade}} / {{max_grade}}
+    </div>
+        {% else %}
+        <div class="alert alert-danger">
+            Failed Sorry, {{request.user}} You have failed exam with score {{grade}} / {{max_grade}}
+        </div>
+        <a class="btn btn-link text-danger" href="{% url 'onlinecourse:course_details' course.id %}">Re-test</a>
+        {% endif %}
+        <div class="card-columns-vertical mt-1">
+        <h5 class="">Exam results</h5>
+            {% for question in course.question_set.all %}
+                <div class="card mt-1">
+                    <div class="card-header"><h5>{{question.text}}</h5></div>
+                    {% for correct in question.get_corrects %}
+                        {% if correct in question|get_selected:Selected %}
+                            <p style="color:green">Correct answer: {{correct.text}}</p>
+                        {% endif %}
+                        {% if correct not in question|get_selected:Selected %}
+                            <p style="color:rgb(144, 144, 16)">Not selected: {{correct.text}}</p>
+                        {% endif %}
+                    {% endfor %}
+                    {% for sel in question|get_selected:Selected %}
+                        {% if sel not in question.get_corrects %}
+                            <p> {{sel.text}}</p>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</body>
+</html>
